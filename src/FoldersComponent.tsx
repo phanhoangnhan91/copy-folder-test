@@ -1,10 +1,11 @@
 import "./styles.css";
 import { Button, Tree, TreeSelect, Input } from "antd";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, Key } from "react";
 import FolderTreeNode from "./FolderTreeNode";
 import { v4 } from "uuid";
 import { treeData } from "./data";
 import "./FoldersComponent.less";
+import { DataNode, EventDataNode } from "antd/lib/tree";
 
 const { Search } = Input;
 const { DirectoryTree } = Tree;
@@ -189,27 +190,20 @@ export default function FoldersComponent() {
     return loop(data);
   }, [data, searchValue]);
 
-  const onSelectFolder = (e: any) => {
-    const findInLoop = (data: any, callback: any, val: any) => {
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].key === e[0] && data[i].draft !== 1) {
-          return callback(data[i]);
-        }
-        if (data[i].children) {
-          findInLoop(data[i].children, callback, val);
-        }
-      }
-    };
-    let title = "";
-    findInLoop(
-      searchRes,
-      (item: any) => {
-        title = item.originalTitle;
-        setIsSelectOpen(!isSelectOpen);
-      },
-      e
-    );
-    setSelectedFolderName(title);
+  const onSelectFolder = (
+    selectedKeys: Key[],
+    info: {
+      event: "select";
+      selected: boolean;
+      node: any;
+      selectedNodes: DataNode[];
+      nativeEvent: MouseEvent;
+    }
+  ) => {
+    if (info.node.draft !== 1) {
+      setSelectedFolderName(info.node.originalTitle);
+      setIsSelectOpen(false);
+    }
   };
 
   const renderFolderNode = (nodeData: any) => {
