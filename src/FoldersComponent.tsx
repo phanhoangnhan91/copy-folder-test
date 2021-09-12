@@ -3,43 +3,11 @@ import { Button, Tree, TreeSelect, Input } from "antd";
 import React, { useState, useCallback, useMemo } from "react";
 import FolderTreeNode from "./FolderTreeNode";
 import { v4 } from "uuid";
+import { treeData } from "./data";
 import "./FoldersComponent.less";
 
 const { Search } = Input;
 const { DirectoryTree } = Tree;
-
-const treeData = [
-  {
-    title: "My folder name 1",
-    value: "0-0",
-    users: -1,
-    key: v4(),
-    draft: 0,
-    children: [
-      {
-        title: "My folder name 1-a",
-        value: "0-0-1",
-        key: v4(),
-        users: -1,
-        draft: 0
-      },
-      {
-        title: "My folder name 1-b",
-        value: "0-0-2",
-        key: v4(),
-        users: -1,
-        draft: 0
-      }
-    ]
-  },
-  {
-    title: "My folder name 2",
-    value: "0-1",
-    key: v4(),
-    users: 0,
-    draft: 0
-  }
-];
 
 export type StateType = {
   key: string;
@@ -220,79 +188,71 @@ export default function FoldersComponent() {
       });
     return loop(data);
   }, [data, searchValue]);
+
+  const onSelectFolder = (e: any) => {
+    const findInLoop = (data: any, callback: any, val: any) => {
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].key === e[0] && data[i].draft !== 1) {
+          return callback(data[i]);
+        }
+        if (data[i].children) {
+          findInLoop(data[i].children, callback, val);
+        }
+      }
+    };
+    let title = "";
+    findInLoop(
+      searchRes,
+      (item: any) => {
+        title = item.originalTitle;
+        setIsSelectOpen(!isSelectOpen);
+      },
+      e
+    );
+    setSelectedFolderName(title);
+  };
+
+  const renderFolderNode = (nodeData: any) => {
+    return <FolderTreeNode setData={setData} data={data} nodeData={nodeData} />;
+  };
+  const dropdownRender = () => (
+    <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+      <div>
+        <Search
+          placeholder="Search"
+          onChange={onSearchChange}
+          className="search-box"
+        />
+        <Button type="link" onClick={addItem}>
+          Add New Folder
+        </Button>
+      </div>
+
+      <DirectoryTree
+        draggable
+        blockNode
+        onDrop={onDrop}
+        className="draggable-tree"
+        treeData={searchRes}
+        titleRender={renderFolderNode}
+        onSelect={onSelectFolder}
+      />
+    </div>
+  );
+  const onContainerClick = () => {
+    setIsSelectOpen(!isSelectOpen);
+  };
+
   return (
-    <div
-      className="App"
-      style={{ height: 540.2, marginTop: 20, marginLeft: 30, marginRight: 30 }}
-    >
-      <div
-        onClick={() => {
-          setIsSelectOpen(!isSelectOpen);
-        }}
-      >
+    <div className="App">
+      <div onClick={onContainerClick}>
         <h1> Copy Data to Folder</h1>
         <TreeSelect
-          style={{ width: "100%" }}
-          id="test"
-          dropdownStyle={{ maxHeight: 500, overflow: "auto" }}
-          placeholder=""
-          value={selectedFolderName || "Select Folder"}
+          className="my-tree"
+          value={selectedFolderName || "Select folder"}
           multiple={false}
           open={isSelectOpen}
-          dropdownRender={() => (
-            <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-              <div style={{ display: "flex", flexWrap: "nowrap", padding: 8 }}>
-                <Search
-                  style={{ paddingRight: "8px" }}
-                  placeholder="Search"
-                  onChange={onSearchChange}
-                />
-                <Button type="link" onClick={addItem}>
-                  Add New Folder
-                </Button>
-              </div>
-
-              <DirectoryTree
-                draggable
-                blockNode
-                onDrop={onDrop}
-                className="draggable-tree"
-                treeData={searchRes}
-                titleRender={(nodeData: any) => {
-                  return (
-                    <FolderTreeNode
-                      setData={setData}
-                      data={data}
-                      nodeData={nodeData}
-                    />
-                  );
-                }}
-                onSelect={(e: any) => {
-                  const findInLoop = (data: any, callback: any, val: any) => {
-                    for (let i = 0; i < data.length; i++) {
-                      if (data[i].key === e[0] && data[i].draft !== 1) {
-                        return callback(data[i]);
-                      }
-                      if (data[i].children) {
-                        findInLoop(data[i].children, callback, val);
-                      }
-                    }
-                  };
-                  let title = "";
-                  findInLoop(
-                    searchRes,
-                    (item: any) => {
-                      title = item.originalTitle;
-                      setIsSelectOpen(!isSelectOpen);
-                    },
-                    e
-                  );
-                  setSelectedFolderName(title);
-                }}
-                key="dsads"
-              />
-            </div>
-          )}
+          dropdownRender={dropdownRender}
         />
       </div>
       <div className="btn-group">

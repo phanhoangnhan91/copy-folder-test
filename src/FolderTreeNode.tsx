@@ -108,7 +108,7 @@ const FolderTreeNode = ({ nodeData, data, setData }: FolderNode) => {
           ? "Visible to Everyone"
           : isVisibleToMe
           ? "Only visible to Me"
-          : "Visible to " + nodeData.users.join(",")}
+          : "Visible to " + nodeData.users.join(", ")}
       </div>
     </div>
   );
