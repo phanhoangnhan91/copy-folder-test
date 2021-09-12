@@ -3,6 +3,7 @@ import { Button, Tree, TreeSelect } from "antd";
 import React, { useState, useCallback, useMemo } from "react";
 import FolderTreeNode from "./FolderTreeNode";
 import { v4 } from "uuid";
+import "./FoldersComponent.less";
 
 const treeData = [
   {
@@ -50,6 +51,7 @@ export default function FoldersComponent() {
   const [data, setData] = useState<Array<StateType>>(treeData);
   const [isSelectOpen, setIsSelectOpen] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>("");
+  const [selectedFolderName, setSelectedFolderName] = useState<string>("");
 
   const onDrop = useCallback(
     (info: any) => {
@@ -167,7 +169,7 @@ export default function FoldersComponent() {
   const addItem = useCallback(() => {
     const id = v4();
     const newData = {
-      title: "New Folder",
+      title: "",
       value: id,
       key: id,
       users: -1,
@@ -212,85 +214,82 @@ export default function FoldersComponent() {
   }, [data, searchValue]);
   return (
     <div
-      onClick={() => {
-        setIsSelectOpen(!isSelectOpen);
-      }}
       className="App"
-      style={{ height: 540.2, marginTop: 20 }}
+      style={{ height: 540.2, marginTop: 20, marginLeft: 30, marginRight: 30 }}
     >
-      <TreeSelect
-        style={{ width: "100%" }}
-        id="test"
-        dropdownStyle={{ maxHeight: 500, overflow: "auto" }}
-        placeholder=""
-        // onChange={onChange}
-        //value={value || 'Select Folder'}
-        value={"Select Folder"}
-        //onSelect={onSelect}
-        open={true}
-        dropdownRender={() => (
-          <div>
-            <div style={{ display: "flex", flexWrap: "nowrap", padding: 8 }}>
-              {/* <Search
+      <div
+        onClick={() => {
+          setIsSelectOpen(!isSelectOpen);
+        }}
+      >
+        <h1> Copy Data to Folder</h1>
+        <TreeSelect
+          style={{ width: "100%" }}
+          id="test"
+          dropdownStyle={{ maxHeight: 500, overflow: "auto" }}
+          placeholder=""
+          value={selectedFolderName || "Select Folder"}
+          multiple={false}
+          open={isSelectOpen}
+          dropdownRender={() => (
+            <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+              <div style={{ display: "flex", flexWrap: "nowrap", padding: 8 }}>
+                {/* <Search
                 style={{ paddingRight: "8px" }}
                 placeholder="Search"
                 onChange={onSearchChange}
               /> */}
-              <Button type="link" onClick={addItem}>
-                Add New Folder
-              </Button>
-            </div>
+                <Button type="link" onClick={addItem}>
+                  Add New Folder
+                </Button>
+              </div>
 
-            <Tree
-              multiple
-              //autoExpandParent={autoExpandParent}
-              draggable
-              blockNode
-              onDrop={onDrop}
-              className="draggable-tree"
-              treeData={searchRes}
-              //TODO: any
-              titleRender={(nodeData: any) => {
-                return (
-                  <FolderTreeNode
-                    setData={setData}
-                    data={data}
-                    nodeData={nodeData}
-                  />
-                );
-              }}
-              // onSelect={(e: any) => {
-              //   const findInLoop = (data: any, callback: any, val: any) => {
-              //     for (let i = 0; i < data.length; i++) {
-              //       if (data[i].key === e[0] && data[i].draft !== 1) {
-              //         return callback(data[i]);
-              //       }
-              //       if (data[i].children) {
-              //         findInLoop(data[i].children, callback, val);
-              //       }
-              //     }
-              //   };
-              //   let title = "";
-              //   findInLoop(
-              //     searchRes,
-              //     (item: any) => {
-              //       title = item.originalTitle;
-              //       setOpen(!open);
-              //     },
-              //     e
-              //   );
-              //   setValue(title);
-              // }}
-              key="dsads"
-            />
-          </div>
-        )}
-      />
-      <div className="btn-action">
-        <Button className="btn btn-cancel" type="primary">
-          CANCEL
-        </Button>
-        <Button className="btn btn-save" type="primary">
+              <Tree
+                draggable
+                blockNode
+                onDrop={onDrop}
+                className="draggable-tree"
+                treeData={searchRes}
+                titleRender={(nodeData: any) => {
+                  return (
+                    <FolderTreeNode
+                      setData={setData}
+                      data={data}
+                      nodeData={nodeData}
+                    />
+                  );
+                }}
+                onSelect={(e: any) => {
+                  const findInLoop = (data: any, callback: any, val: any) => {
+                    for (let i = 0; i < data.length; i++) {
+                      if (data[i].key === e[0] && data[i].draft !== 1) {
+                        return callback(data[i]);
+                      }
+                      if (data[i].children) {
+                        findInLoop(data[i].children, callback, val);
+                      }
+                    }
+                  };
+                  let title = "";
+                  findInLoop(
+                    searchRes,
+                    (item: any) => {
+                      title = item.originalTitle;
+                      setIsSelectOpen(!isSelectOpen);
+                    },
+                    e
+                  );
+                  setSelectedFolderName(title);
+                }}
+                key="dsads"
+              />
+            </div>
+          )}
+        />
+      </div>
+      <div className="btn-group">
+        <Button type="ghost">CANCEL</Button>
+        <Button className="btn-save" type="primary">
           SAVE
         </Button>
       </div>

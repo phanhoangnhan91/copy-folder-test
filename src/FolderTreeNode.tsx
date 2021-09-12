@@ -22,7 +22,7 @@ const FolderTreeNode = ({ nodeData, data, setData }: FolderNode) => {
   const [selectedVisibility, setSelectedVisibility] = useState<any>(-1);
   // eslint-disable-next-line
   const [users, setUsers] = useState<Array<string>>([]);
-  const [folderTitle, setFolderTitle] = useState<string>("New Folder");
+  const [folderTitle, setFolderTitle] = useState<string>("");
   const isVisibleToAll = nodeData.users === -1;
   const isVisibleToMe = nodeData.users === 0;
   const customizedVissibility = selectedVisibility === 1;
@@ -69,6 +69,7 @@ const FolderTreeNode = ({ nodeData, data, setData }: FolderNode) => {
           <Input
             style={{ flex: "auto" }}
             value={folderTitle}
+            placeholder="Enter folder name"
             onChange={onNameChange}
           />
           <Select
@@ -80,14 +81,18 @@ const FolderTreeNode = ({ nodeData, data, setData }: FolderNode) => {
             <Option value={0}>Only visible to Me</Option>
             <Option value={1}>Visible to Specific Users</Option>
           </Select>
-          {/* TODO: {customizedVissibility && <EditableTagGroup />} */}
-          <div className="custom-option__action">
+
+          <div className="btn-group">
             <DeleteFilled
-              style={{ fontSize: "30px", color: "red", paddingRight: "10px" }}
+              style={{
+                fontSize: "30px",
+                color: "#d3455c",
+                paddingRight: "10px"
+              }}
               onClick={deleteDraftFolder}
             />
             <SaveFilled
-              style={{ fontSize: "30px", color: "#08c" }}
+              style={{ fontSize: "30px", color: "#1bae9f" }}
               onClick={saveDraftFolder}
             />
           </div>
