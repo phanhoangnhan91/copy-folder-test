@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Input, Select } from "antd";
 import { SaveFilled, DeleteFilled } from "@ant-design/icons";
-//import EditableTagGroup from "@layout/user_input";
+import UserList from "./UserList";
 
 const { Option } = Select;
 export interface FolderNode {
@@ -20,7 +20,6 @@ type StateType = {
 
 const FolderTreeNode = ({ nodeData, data, setData }: FolderNode) => {
   const [selectedVisibility, setSelectedVisibility] = useState<any>(-1);
-  // eslint-disable-next-line
   const [users, setUsers] = useState<Array<string>>([]);
   const [folderTitle, setFolderTitle] = useState<string>("");
   const isVisibleToAll = nodeData.users === -1;
@@ -43,11 +42,12 @@ const FolderTreeNode = ({ nodeData, data, setData }: FolderNode) => {
       if (item.value !== nodeData.value) {
         return item;
       }
+      console.log("user", users);
       return {
         title: folderTitle || "New Folder",
         value: nodeData.value,
         key: nodeData.key,
-        users: !customizedVissibility ? selectedVisibility : users,
+        users: !customizedVissibility ? selectedVisibility : [...users],
         draft: 0
       };
     });
@@ -64,52 +64,51 @@ const FolderTreeNode = ({ nodeData, data, setData }: FolderNode) => {
 
   if (nodeData.draft === 1) {
     return (
-      <>
-        <div className="custom-option__block">
-          <Input
-            style={{ flex: "auto" }}
-            value={folderTitle}
-            placeholder="Enter folder name"
-            onChange={onNameChange}
+      <div className="custom-option__block">
+        <Input
+          style={{ flex: "auto" }}
+          value={folderTitle}
+          className="folder-name"
+          placeholder="Enter folder name"
+          onChange={onNameChange}
+        />
+        <Select
+          defaultValue={selectedVisibility}
+          style={{ width: 380, marginTop: "10px" }}
+          onChange={setSelectedVisibility}
+        >
+          <Option value={-1}>Visible to Everyone</Option>
+          <Option value={0}>Only visible to Me</Option>
+          <Option value={1}>Visible to Specific Users</Option>
+        </Select>
+        {customizedVissibility && <UserList tags={users} setTags={setUsers} />}
+        <div className="btn-group">
+          <DeleteFilled
+            style={{
+              fontSize: "30px",
+              color: "#d3455c",
+              paddingRight: "10px"
+            }}
+            onClick={deleteDraftFolder}
           />
-          <Select
-            defaultValue={selectedVisibility}
-            style={{ width: 380, marginTop: "10px" }}
-            onChange={setSelectedVisibility}
-          >
-            <Option value={-1}>Visible to Everyone</Option>
-            <Option value={0}>Only visible to Me</Option>
-            <Option value={1}>Visible to Specific Users</Option>
-          </Select>
-
-          <div className="btn-group">
-            <DeleteFilled
-              style={{
-                fontSize: "30px",
-                color: "#d3455c",
-                paddingRight: "10px"
-              }}
-              onClick={deleteDraftFolder}
-            />
-            <SaveFilled
-              style={{ fontSize: "30px", color: "#1bae9f" }}
-              onClick={saveDraftFolder}
-            />
-          </div>
+          <SaveFilled
+            style={{ fontSize: "30px", color: "#1bae9f" }}
+            onClick={saveDraftFolder}
+          />
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="custom-option__block">
-      <span className="custom-option__title">{nodeData.title}</span>
+    <div>
+      <h3>{nodeData.title}</h3>
       <div>
         {isVisibleToAll
           ? "Visible to Everyone"
           : isVisibleToMe
           ? "Only visible to Me"
-          : "Visible to Specific Users"}
+          : "Visible to " + nodeData.users.join(",")}
       </div>
     </div>
   );

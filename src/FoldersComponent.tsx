@@ -1,27 +1,30 @@
 import "./styles.css";
-import { Button, Tree, TreeSelect } from "antd";
+import { Button, Tree, TreeSelect, Input } from "antd";
 import React, { useState, useCallback, useMemo } from "react";
 import FolderTreeNode from "./FolderTreeNode";
 import { v4 } from "uuid";
 import "./FoldersComponent.less";
 
+const { Search } = Input;
+const { DirectoryTree } = Tree;
+
 const treeData = [
   {
-    title: "Folder 1",
+    title: "My folder name 1",
     value: "0-0",
     users: -1,
     key: v4(),
     draft: 0,
     children: [
       {
-        title: "Folder 1-1",
+        title: "My folder name 1-a",
         value: "0-0-1",
         key: v4(),
         users: -1,
         draft: 0
       },
       {
-        title: "Folder 1-2",
+        title: "My folder name 1-b",
         value: "0-0-2",
         key: v4(),
         users: -1,
@@ -30,7 +33,7 @@ const treeData = [
     ]
   },
   {
-    title: "Folder 2",
+    title: "My folder name 2",
     value: "0-1",
     key: v4(),
     users: 0,
@@ -52,6 +55,11 @@ export default function FoldersComponent() {
   const [isSelectOpen, setIsSelectOpen] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedFolderName, setSelectedFolderName] = useState<string>("");
+
+  const onSearchChange = useCallback((e: any) => {
+    const { value } = e.target;
+    setSearchValue(value);
+  }, []);
 
   const onDrop = useCallback(
     (info: any) => {
@@ -187,7 +195,7 @@ export default function FoldersComponent() {
           index > -1 ? (
             <span>
               {beforeStr}
-              <span className="site-tree-search-value">{searchValue}</span>
+              <span className="search-highlight">{searchValue}</span>
               {afterStr}
             </span>
           ) : (
@@ -234,17 +242,17 @@ export default function FoldersComponent() {
           dropdownRender={() => (
             <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
               <div style={{ display: "flex", flexWrap: "nowrap", padding: 8 }}>
-                {/* <Search
-                style={{ paddingRight: "8px" }}
-                placeholder="Search"
-                onChange={onSearchChange}
-              /> */}
+                <Search
+                  style={{ paddingRight: "8px" }}
+                  placeholder="Search"
+                  onChange={onSearchChange}
+                />
                 <Button type="link" onClick={addItem}>
                   Add New Folder
                 </Button>
               </div>
 
-              <Tree
+              <DirectoryTree
                 draggable
                 blockNode
                 onDrop={onDrop}
