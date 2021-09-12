@@ -10,17 +10,18 @@ import { DataNode, EventDataNode } from "antd/lib/tree";
 const { Search } = Input;
 const { DirectoryTree } = Tree;
 
-export type StateType = {
+export type FolderNode = {
   key: string;
   title: string;
-  value: string;
-  users?: any;
-  draft?: any;
-  children?: Array<StateType>;
+  value?: string;
+  users: number | string[];
+  draft?: number;
+  children?: Array<FolderNode>;
+  originalTitle?: string;
 };
 
 export default function FoldersComponent() {
-  const [data, setData] = useState<Array<StateType>>(treeData);
+  const [data, setData] = useState<Array<FolderNode>>(treeData);
   const [isSelectOpen, setIsSelectOpen] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedFolderName, setSelectedFolderName] = useState<string>("");
@@ -42,24 +43,34 @@ export default function FoldersComponent() {
       const dropPosition =
         info.dropPosition - Number(dropPos[dropPos.length - 1]);
 
-      const loop = (data: any, key: number, callback: any, vis: any) => {
-        let parentVis = vis;
+      const updateNodeData = (
+        data: FolderNode[],
+        key: string,
+        callback: Function,
+        visible: number | string[] | null
+      ) => {
+        let parentVis = visible;
         for (let i = 0; i < data.length; i++) {
           if (data[i].key === key) {
             return callback(data[i], i, data, parentVis);
           }
           if (data[i].children) {
-            loop(data[i].children, key, callback, data[i].users);
+            updateNodeData(
+              data[i].children || [],
+              key,
+              callback,
+              data[i].users
+            );
           }
         }
       };
       const clonedData = [...data];
 
       let dragObj: any;
-      loop(
+      updateNodeData(
         clonedData,
         dragKey,
-        (item: any, index: number, arr: Array<StateType>) => {
+        (item: any, index: number, arr: Array<FolderNode>) => {
           arr.splice(index, 1);
           dragObj = item;
         },
@@ -67,7 +78,7 @@ export default function FoldersComponent() {
       );
 
       if (!info.dropToGap) {
-        loop(
+        updateNodeData(
           clonedData,
           dropKey,
           (item: any) => {
@@ -81,7 +92,7 @@ export default function FoldersComponent() {
         info.node.props.expanded &&
         dropPosition === 1
       ) {
-        loop(
+        updateNodeData(
           clonedData,
           dropKey,
           (item: any) => {
@@ -91,18 +102,18 @@ export default function FoldersComponent() {
           null
         );
       } else {
-        let ar: Array<StateType> = [];
+        let ar: Array<FolderNode> = [];
         let i = 0;
-        loop(
+        updateNodeData(
           clonedData,
           dropKey,
-          (item: any, index: number, arr: Array<StateType>) => {
+          (item: any, index: number, arr: Array<FolderNode>) => {
             ar = arr;
             i = index;
           },
           null
         );
-        const temp: StateType = { ...dragObj };
+        const temp: FolderNode = { ...dragObj };
         if (dropPosition === -1) {
           ar.splice(i, 0, temp);
         } else {
@@ -120,15 +131,14 @@ export default function FoldersComponent() {
         }
       };
 
-      loop(
+      updateNodeData(
         clonedData,
         dragKey,
-        (item: any, index: number, arr: Array<StateType>, parentVis: any) => {
+        (item: any, index: number, arr: Array<FolderNode>, parentVis: any) => {
           if (!parentVis) {
             return;
           }
           item.users = parentVis;
-          // eslint-disable-next-line
           if (item.children?.length > 0) {
             loopChildren(item.children, (childItem: any) => {
               childItem.users = parentVis;
@@ -154,9 +164,9 @@ export default function FoldersComponent() {
     };
     setData([newData, ...data]);
   }, [data]);
-  const searchRes = useMemo(() => {
-    const loop = (dataArr: any) =>
-      dataArr.map((item: any) => {
+  const searchData = useMemo(() => {
+    const getSearchData = (dataArr: any) =>
+      dataArr.map((item: FolderNode) => {
         const index = item.title.indexOf(searchValue);
         const beforeStr = item.title.substr(0, index);
         const afterStr = item.title.substr(index + searchValue.length);
@@ -170,24 +180,15 @@ export default function FoldersComponent() {
           ) : (
             <span>{item.title}</span>
           );
-        if (item.children) {
-          return {
-            ...item,
-            title,
-            originalTitle: item.title,
-            key: item.key,
-            children: loop(item.children)
-          };
-        }
-
         return {
           ...item,
           title,
           originalTitle: item.title,
-          key: item.key
+          key: item.key,
+          children: getSearchData(item.children || [])
         };
       });
-    return loop(data);
+    return getSearchData(data);
   }, [data, searchValue]);
 
   const onSelectFolder = (
@@ -195,13 +196,14 @@ export default function FoldersComponent() {
     info: {
       event: "select";
       selected: boolean;
-      node: any;
+      node: EventDataNode;
       selectedNodes: DataNode[];
       nativeEvent: MouseEvent;
     }
   ) => {
-    if (info.node.draft !== 1) {
-      setSelectedFolderName(info.node.originalTitle);
+    const node = { ...info.node, users: -1 } as FolderNode;
+    if (node.draft !== 1) {
+      setSelectedFolderName(node.originalTitle || "");
       setIsSelectOpen(false);
     }
   };
@@ -227,7 +229,7 @@ export default function FoldersComponent() {
         blockNode
         onDrop={onDrop}
         className="draggable-tree"
-        treeData={searchRes}
+        treeData={searchData}
         titleRender={renderFolderNode}
         onSelect={onSelectFolder}
       />

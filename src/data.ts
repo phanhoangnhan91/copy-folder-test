@@ -1,5 +1,6 @@
 import { v4 } from "uuid";
-export const treeData = [
+import { FolderNode } from "./FoldersComponent";
+export const treeData: FolderNode[] = [
   {
     title: "My folder name 1",
     value: "0-0",
